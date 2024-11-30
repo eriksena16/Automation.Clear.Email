@@ -1,12 +1,15 @@
+using Automation.Clear.Email.Services.Interfaces;
+
 namespace Automation.Clear.Email
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-
-        public Worker(ILogger<Worker> logger)
+        private readonly IServiceProvider _serviceProvider;
+        public Worker(ILogger<Worker> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
+            _serviceProvider = serviceProvider;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -15,7 +18,10 @@ namespace Automation.Clear.Email
             {
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                    using var scope = _serviceProvider.CreateScope();
+                    var processClearEmailService = scope.ServiceProvider.GetService<IProcessClearEmailService>();
+
+                    processClearEmailService.DeleteSpamEmails();
                 }
                 await Task.Delay(1000, stoppingToken);
             }
