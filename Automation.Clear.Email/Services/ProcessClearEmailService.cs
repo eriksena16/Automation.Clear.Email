@@ -94,8 +94,6 @@ namespace Automation.Clear.Email.Services
 
             _logger.LogInformation("Apagar as mensagens encontradas");
 
-            uids = uids.Take(20).ToList();
-
             foreach (var uid in uids)
             {
                 var message = emailFolder.GetMessage(uid);
