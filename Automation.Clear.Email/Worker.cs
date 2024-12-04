@@ -21,7 +21,7 @@ namespace Automation.Clear.Email
                     using var scope = _serviceProvider.CreateScope();
                     var processClearEmailService = scope.ServiceProvider.GetService<IProcessClearEmailService>();
 
-                    processClearEmailService.DeleteSpamEmails();
+                    processClearEmailService.ProcessEmails();
                 }
                 await Task.Delay(1000, stoppingToken);
             }

@@ -2,6 +2,6 @@
 {
     public interface IProcessClearEmailService
     {
-        void DeleteSpamEmails();
+        void ProcessEmails();
     }
 }
