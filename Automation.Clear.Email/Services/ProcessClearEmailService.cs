@@ -35,8 +35,8 @@ namespace Automation.Clear.Email.Services
 
                 DeleteAllEmails(client);
                 DeleteEmailsNaoAbertos(client);
+                DeleteEmailsAbertos(client);
 
-               
 
                 _logger.LogInformation("Desconectar do servidor");
 
@@ -87,10 +87,42 @@ namespace Automation.Clear.Email.Services
 
             _logger.LogInformation("Defina o critério de busca para os e-mails que deseja excluir");
 
-            var searchQuery = SearchQuery.NotSeen.And(SearchQuery.DeliveredBefore(DateTime.Now.AddMonths(-1)));
+            var searchSeenQuery = SearchQuery.Seen.And(SearchQuery.DeliveredBefore(DateTime.Now.AddMonths(-1)));
 
-            _logger.LogInformation("Buscar mensagens na pasta de spam que correspondem ao critério de busca");
-            var uids = emailFolder.Search(searchQuery);
+            _logger.LogInformation("Buscar mensagens lidas com mais de 1 mês");
+
+            var uids = emailFolder.Search(searchSeenQuery);
+
+            _logger.LogInformation("Apagar as mensagens encontradas");
+
+            foreach (var uid in uids)
+            {
+                var message = emailFolder.GetMessage(uid);
+                _logger.LogInformation($"Excluindo o e-mail com assunto: {message.Subject}, De: {message.From}");
+
+                emailFolder.AddFlags(uid, MessageFlags.Deleted, true);
+            }
+
+            _logger.LogInformation($"Emails removidos da pasta: {emailFolder.FullName} - {uids.Count}");
+
+            emailFolder.Expunge();
+
+
+        }
+        private void DeleteEmailsAbertos(ImapClient client)
+        {
+            var emailFolder = client.GetFolder("INBOX");
+
+            _logger.LogInformation($"Abrir pasta {emailFolder.FullName}");
+
+            emailFolder.Open(FolderAccess.ReadWrite);
+
+            _logger.LogInformation("Defina o critério de busca para os e-mails que deseja excluir");
+
+            var searchNotSeenQuery = SearchQuery.NotSeen.And(SearchQuery.DeliveredBefore(DateTime.Now.AddMonths(-1)));
+            _logger.LogInformation("Buscar mensagens não lidas com mais de 1 mês");
+
+            var uids = emailFolder.Search(searchNotSeenQuery);
 
             _logger.LogInformation("Apagar as mensagens encontradas");
 
